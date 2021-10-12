@@ -5,6 +5,7 @@ import time
 from collections import namedtuple
 from pathlib import Path
 from random import choice, randint
+from statistics import median
 
 import curses_tools
 from fire import fire
@@ -34,21 +35,26 @@ async def wait_ticks(num_of_ticks):
         await asyncio.sleep(0)
 
 
-async def rocket(canvas, start_row, start_column, rocket_frames):
-    canvas.nodelay(True)    
+async def rocket(canvas, start_row, start_column, rocket_frames, speed=1):
+    canvas.nodelay(True)
+
+    max_row, max_column = canvas.getmaxyx()
 
     row = start_row
     column = start_column
 
     for frame in itertools.cycle(rocket_frames):
 
+        rocket_rows, rocket_columns = curses_tools.get_frame_size(frame)
+
         rows_direction, columns_direction, _space_pressed = curses_tools.read_controls(canvas)
-        row += rows_direction
-        column += columns_direction
+
+        row = median([1, row + speed * rows_direction, max_row - rocket_rows - 1])
+        column = median([1, column + speed * columns_direction, max_column - rocket_columns - 1])
 
         curses_tools.draw_frame(canvas, row, column, frame)
-        canvas.refresh()
 
+        canvas.refresh()
         await asyncio.sleep(0)
 
         curses_tools.draw_frame(canvas, row, column, frame, negative=True)
@@ -72,7 +78,7 @@ async def blink_star(canvas, star: Star):
 
 
 def draw(canvas, rocket_frames, num_of_stars=NUM_OF_STARS, tic_timeout=TIC_TIMEOUT):
-    curses.curs_set(False)    
+    curses.curs_set(False)
     canvas.border()
 
     height, width = canvas.getmaxyx()
@@ -80,7 +86,7 @@ def draw(canvas, rocket_frames, num_of_stars=NUM_OF_STARS, tic_timeout=TIC_TIMEO
 
     coroutines = []
 
-    for _ in range(30):
+    for _ in range(num_of_stars):
         coroutines.append(blink_star(canvas, generate_random_star(max_height, max_width)))
 
     coroutines.append(fire(canvas, max_height // 2, max_width // 2 + 1))

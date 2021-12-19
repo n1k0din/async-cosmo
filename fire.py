@@ -2,17 +2,23 @@ import asyncio
 import curses
 
 
-async def fire_shot(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
+async def fire_shot(
+    canvas: curses.window,
+    start_row: float,
+    start_column: float,
+    rows_speed: float = -0.3,
+    columns_speed: float = 0,
+) -> None:
     """Display animation of gun shot, direction and speed can be specified."""
-
     row, column = start_row, start_column
+    round_row, round_column = round(row), round(column)
 
-    canvas.addstr(round(row), round(column), '*')
+    canvas.addstr(round_row, round_column, '*')
     await asyncio.sleep(0)
 
-    canvas.addstr(round(row), round(column), 'O')
+    canvas.addstr(round_row, round_column, 'O')
     await asyncio.sleep(0)
-    canvas.addstr(round(row), round(column), ' ')
+    canvas.addstr(round_row, round_column, ' ')
 
     row += rows_speed
     column += columns_speed

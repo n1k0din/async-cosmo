@@ -1,3 +1,5 @@
+import curses
+
 SPACE_KEY_CODE = 32
 LEFT_KEY_CODE = 260
 RIGHT_KEY_CODE = 261
@@ -5,10 +7,10 @@ UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
 
 
-def read_controls(canvas):
-    """Read keys pressed and returns tuple witl controls state."""
-
-    rows_direction = columns_direction = 0
+def read_controls(canvas: curses.window) -> tuple[int, int, bool]:
+    """Read keys pressed and returns tuple with controls state."""
+    rows_direction = 0
+    columns_direction = 0
     space_pressed = False
 
     while True:
@@ -36,9 +38,14 @@ def read_controls(canvas):
     return rows_direction, columns_direction, space_pressed
 
 
-def draw_frame(canvas, start_row, start_column, text, negative=False):
+def draw_frame(
+    canvas: curses.window,
+    start_row: int,
+    start_column: int,
+    text: str,
+    negative: bool = False,
+) -> None:
     """Draw multiline text fragment on canvas, erase text instead of drawing if negative=True is specified."""
-
     rows_number, columns_number = canvas.getmaxyx()
 
     for row, line in enumerate(text.splitlines(), round(start_row)):
@@ -64,13 +71,12 @@ def draw_frame(canvas, start_row, start_column, text, negative=False):
             if row == rows_number - 1 and column == columns_number - 1:
                 continue
 
-            symbol = symbol if not negative else ' '
+            symbol = ' ' if negative else symbol
             canvas.addch(row, column, symbol)
 
 
-def get_frame_size(text):
+def get_frame_size(text: str) -> tuple[int, int]:
     """Calculate size of multiline text fragment, return pair — number of rows and colums."""
-
     lines = text.splitlines()
     rows = len(lines)
     columns = max([len(line) for line in lines])

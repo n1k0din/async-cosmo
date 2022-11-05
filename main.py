@@ -11,6 +11,7 @@ import curses_tools
 from fire import fire_shot
 from obstacles import show_obstacles
 from physics import update_speed
+from show_gameover import show_gameover
 from space_garbage import fly_garbage, obstacles
 
 TIC_TIMEOUT = 0.1
@@ -42,44 +43,6 @@ def generate_random_star(
     return Star(row, column, symbol, lag)
 
 
-async def sleep(num_of_ticks: int) -> None:
-    """time.sleep for asyncio."""
-    for _ in range(num_of_ticks):
-        await asyncio.sleep(0)
-
-
-async def run_spaceship(
-    canvas: curses.window,
-    max_height: int,
-    max_width: int,
-    rocket_frames: list[str],
-) -> None:
-    """Draws animated rocket by the specified coordinates."""
-    height, width = canvas.getmaxyx()
-
-    row = max_height // 2
-    column = max_width // 2
-
-    row_speed = 0.0
-    column_speed = 0.0
-
-    for frame in itertools.cycle(rocket_frames):
-
-        rocket_rows, rocket_columns = curses_tools.get_frame_size(frame)
-
-        rows_direction, columns_direction, is_space_pressed = curses_tools.read_controls(canvas)
-        if is_space_pressed:
-            coroutines.append(fire_shot(canvas, row, column + rocket_columns // 2))
-
-        row_speed, column_speed = update_speed(row_speed, column_speed, rows_direction, columns_direction)
-        row = round(median([1, row + row_speed, height - rocket_rows - 1]))
-        column = round(median([1, column + column_speed, width - rocket_columns - 1]))
-
-        curses_tools.draw_frame(canvas, row, column, frame)
-        await asyncio.sleep(0)
-        curses_tools.draw_frame(canvas, row, column, frame, negative=True)
-
-
 async def blink_star(canvas: curses.window, star: Star) -> None:
     """Add blinking star to canvas."""
     while True:
@@ -96,6 +59,50 @@ async def blink_star(canvas: curses.window, star: Star) -> None:
 
         canvas.addstr(star.row, star.column, star.symbol)
         await sleep(3)
+
+
+async def sleep(num_of_ticks: int) -> None:
+    """time.sleep for asyncio."""
+    for _ in range(num_of_ticks):
+        await asyncio.sleep(0)
+
+
+async def run_spaceship(
+    canvas: curses.window,
+    max_height: int,
+    max_width: int,
+    rocket_frames: list[str],
+) -> None:
+    """Draws animated rocket by the specified coordinates."""
+    height, width = canvas.getmaxyx()
+
+    height_middle = max_height // 2
+    width_middle = max_width // 2
+    row = height_middle
+    column = width_middle
+
+    row_speed = 0.0
+    column_speed = 0.0
+
+    for frame in itertools.cycle(rocket_frames):
+        for obstacle in obstacles:
+            if obstacle.has_collision(row, column):
+                coroutines.append(show_gameover(canvas, height_middle, width_middle))
+                return
+
+        rocket_rows, rocket_columns = curses_tools.get_frame_size(frame)
+
+        rows_direction, columns_direction, is_space_pressed = curses_tools.read_controls(canvas)
+        if is_space_pressed:
+            coroutines.append(fire_shot(canvas, row, column + rocket_columns // 2))
+
+        row_speed, column_speed = update_speed(row_speed, column_speed, rows_direction, columns_direction)
+        row = round(median([1, row + row_speed, height - rocket_rows - 1]))
+        column = round(median([1, column + column_speed, width - rocket_columns - 1]))
+
+        curses_tools.draw_frame(canvas, row, column, frame)
+        await asyncio.sleep(0)
+        curses_tools.draw_frame(canvas, row, column, frame, negative=True)
 
 
 async def fill_orbit_with_garbage(

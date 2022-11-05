@@ -87,6 +87,11 @@ async def sleep(num_of_ticks: int) -> None:
         await asyncio.sleep(0)
 
 
+def has_gun() -> bool:
+    """Check for having gun to destroy garbage."""
+    return current_year >= 2020
+
+
 async def run_spaceship(
     canvas: curses.window,
     max_height: int,
@@ -113,7 +118,7 @@ async def run_spaceship(
         rocket_rows, rocket_columns = curses_tools.get_frame_size(frame)
 
         rows_direction, columns_direction, is_space_pressed = curses_tools.read_controls(canvas)
-        if is_space_pressed:
+        if is_space_pressed and has_gun():
             coroutines.append(fire_shot(canvas, row, column + rocket_columns // 2))
 
         row_speed, column_speed = update_speed(row_speed, column_speed, rows_direction, columns_direction)
@@ -163,7 +168,6 @@ def draw(
 
     coroutines.append(run_spaceship(canvas, max_height, max_width, rocket_frames))
     coroutines.append(fill_orbit_with_garbage(canvas, max_width, garbage_frames))
-    coroutines.append(show_obstacles(canvas, obstacles))
     coroutines.append(start_countdown())
     coroutines.append(fill_year_info_table(year_info_table))
 

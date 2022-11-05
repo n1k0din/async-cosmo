@@ -40,7 +40,7 @@ def generate_random_star(
     return Star(row, column, symbol, lag)
 
 
-async def wait_ticks(num_of_ticks: int) -> None:
+async def sleep(num_of_ticks: int) -> None:
     """sleep(n) for asyncio."""
     for _ in range(num_of_ticks):
         await asyncio.sleep(0)
@@ -78,19 +78,19 @@ async def draw_rocket(
 async def blink_star(canvas: curses.window, star: Star) -> None:
     """Add blinking star to canvas."""
     while True:
-        await wait_ticks(star.first_lag)
+        await sleep(star.first_lag)
 
         canvas.addstr(star.row, star.column, star.symbol, curses.A_DIM)
-        await wait_ticks(20)
+        await sleep(20)
 
         canvas.addstr(star.row, star.column, star.symbol)
-        await wait_ticks(3)
+        await sleep(3)
 
         canvas.addstr(star.row, star.column, star.symbol, curses.A_BOLD)
-        await wait_ticks(5)
+        await sleep(5)
 
         canvas.addstr(star.row, star.column, star.symbol)
-        await wait_ticks(3)
+        await sleep(3)
 
 
 async def fill_orbit_with_garbage(
@@ -101,7 +101,7 @@ async def fill_orbit_with_garbage(
     """Fills the orbit with garbage."""
     while True:
         coroutines.append(fly_garbage(canvas, randint(0, max_width), choice(garbage_frames)))
-        await wait_ticks(10)
+        await sleep(10)
 
 
 def draw(

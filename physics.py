@@ -78,23 +78,3 @@ def update_speed(
         column_speed = _apply_acceleration(column_speed, column_speed_limit, columns_direction > 0)
 
     return row_speed, column_speed
-
-
-if __name__ == '__main__':
-    # корабль стоит на месте
-    row = column = 10
-    row_speed = column_speed = 0
-
-    print(row, column, row_speed, column_speed)
-    # теперь рванул вверх
-    row_speed, column_speed = update_speed(row_speed, column_speed, 1, 0)
-
-    row += row_speed
-    column += column_speed
-    print(row, column, row_speed, column_speed)
-    row_speed, column_speed = update_speed(row_speed, column_speed, 1, 0)
-    print(row, column, row_speed, column_speed)
-    row_speed, column_speed = update_speed(row_speed, column_speed, 1, 0)
-    print(row, column, row_speed, column_speed)
-    row_speed, column_speed = update_speed(row_speed, column_speed, 1, 0)
-    print(row, column, row_speed, column_speed)

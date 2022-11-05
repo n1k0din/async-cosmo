@@ -69,7 +69,6 @@ async def run_spaceship(
 
         rows_direction, columns_direction, is_space_pressed = curses_tools.read_controls(canvas)
         if is_space_pressed:
-            raise ValueError(len(obstacles))
             coroutines.append(fire_shot(canvas, row, column + rocket_columns // 2))
 
         row_speed, column_speed = update_speed(row_speed, column_speed, rows_direction, columns_direction)

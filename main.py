@@ -9,8 +9,9 @@ from statistics import median
 
 import curses_tools
 from fire import fire_shot
+from obstacles import show_obstacles
 from physics import update_speed
-from space_garbage import fly_garbage
+from space_garbage import fly_garbage, obstacles
 
 TIC_TIMEOUT = 0.1
 STAR_SYMBOLS = '+*.:@^'
@@ -59,8 +60,8 @@ async def run_spaceship(
     row = max_height // 2
     column = max_width // 2
 
-    row_speed = 0
-    column_speed = 0
+    row_speed = 0.0
+    column_speed = 0.0
 
     for frame in itertools.cycle(rocket_frames):
 
@@ -68,6 +69,7 @@ async def run_spaceship(
 
         rows_direction, columns_direction, is_space_pressed = curses_tools.read_controls(canvas)
         if is_space_pressed:
+            raise ValueError(len(obstacles))
             coroutines.append(fire_shot(canvas, row, column + rocket_columns // 2))
 
         row_speed, column_speed = update_speed(row_speed, column_speed, rows_direction, columns_direction)
@@ -128,6 +130,7 @@ def draw(
 
     coroutines.append(run_spaceship(canvas, max_height, max_width, rocket_frames))
     coroutines.append(fill_orbit_with_garbage(canvas, max_width, garbage_frames))
+    coroutines.append(show_obstacles(canvas, obstacles))
 
     while True:
         for coroutine in coroutines.copy():

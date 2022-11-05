@@ -1,9 +1,8 @@
 import math
 
 
-def _limit(value, min_value, max_value):
+def _limit(value: float, min_value: float, max_value: float) -> float:
     """Limit value by min_value and max_value."""
-
     if value < min_value:
         return min_value
     if value > max_value:
@@ -11,9 +10,8 @@ def _limit(value, min_value, max_value):
     return value
 
 
-def _apply_acceleration(speed, speed_limit, forward=True):
+def _apply_acceleration(speed: float, speed_limit: float, forward: bool = True) -> float:
     """Change speed — accelerate or brake — according to force direction."""
-
     speed_limit = abs(speed_limit)
 
     speed_fraction = speed / speed_limit
@@ -36,10 +34,19 @@ def _apply_acceleration(speed, speed_limit, forward=True):
     return result_speed
 
 
-def update_speed(row_speed, column_speed, rows_direction, columns_direction, row_speed_limit=2, column_speed_limit=2,
-                 fading=0.8):
-    """Update speed smootly to make control handy for player. Return new speed value (row_speed, column_speed)
+def update_speed(
+    row_speed: float,
+    column_speed: float,
+    rows_direction: float,
+    columns_direction: int,
+    row_speed_limit: float = 2,
+    column_speed_limit: float = 2,
+    fading: float = 0.8,
+) -> tuple[float, float]:
+    """
+    Update speed smoothly to make control handy for player.
 
+    Return new speed value (row_speed, column_speed).
     rows_direction — is a force direction by rows axis. Possible values:
        -1 — if force pulls up
        0  — if force has no effect
@@ -49,7 +56,6 @@ def update_speed(row_speed, column_speed, rows_direction, columns_direction, row
        0  — if force has no effect
        1  — if force pulls right
     """
-
     if rows_direction not in (-1, 0, 1):
         raise ValueError(f'Wrong rows_direction value {rows_direction}. Expects -1, 0 or 1.')
 
@@ -72,6 +78,7 @@ def update_speed(row_speed, column_speed, rows_direction, columns_direction, row
         column_speed = _apply_acceleration(column_speed, column_speed_limit, columns_direction > 0)
 
     return row_speed, column_speed
+
 
 if __name__ == '__main__':
     # корабль стоит на месте

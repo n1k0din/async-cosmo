@@ -17,6 +17,7 @@ MAX_FIRST_LAG = 50
 NUM_OF_STARS = 100
 
 Star = namedtuple('Star', 'row column symbol first_lag')
+coroutines = []
 
 
 def read_frames_from_files(paths: list[str]) -> list[str]:
@@ -92,6 +93,17 @@ async def blink_star(canvas: curses.window, star: Star) -> None:
         await wait_ticks(3)
 
 
+async def fill_orbit_with_garbage(
+    canvas: curses.window,
+    max_width: int,
+    garbage_frames: list[str],
+) -> None:
+    """Fills the orbit with garbage."""
+    while True:
+        coroutines.append(fly_garbage(canvas, randint(0, max_width), choice(garbage_frames)))
+        await wait_ticks(10)
+
+
 def draw(
     canvas: curses.window,
     rocket_frames: list[str],
@@ -107,14 +119,12 @@ def draw(
     height, width = canvas.getmaxyx()
     max_height, max_width = height - 1, width - 1
 
-    coroutines = []
-
     for _ in range(num_of_stars):
         coroutines.append(blink_star(canvas, generate_random_star(max_height, max_width)))
 
     coroutines.append(fire_shot(canvas, max_height // 2, max_width // 2 + 1))
     coroutines.append(draw_rocket(canvas, max_height // 2, max_width // 2 - 1, rocket_frames))
-    coroutines.append(fly_garbage(canvas, randint(0, max_width), choice(garbage_frames)))
+    coroutines.append(fill_orbit_with_garbage(canvas, max_width, garbage_frames))
 
     while True:
         for coroutine in coroutines.copy():

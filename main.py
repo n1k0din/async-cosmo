@@ -10,7 +10,6 @@ from statistics import median
 import curses_tools
 from fire import fire_shot
 from game_scenario import PHRASES, get_garbage_delay_tics
-from obstacles import show_obstacles
 from physics import update_speed
 from show_gameover import show_gameover
 from space_garbage import fly_garbage, obstacles
@@ -110,12 +109,12 @@ async def run_spaceship(
     column_speed = 0.0
 
     for frame in itertools.cycle(rocket_frames):
+        rocket_rows, rocket_columns = curses_tools.get_frame_size(frame)
+
         for obstacle in obstacles:
-            if obstacle.has_collision(row, column):
+            if obstacle.has_collision(row, column, rocket_rows, rocket_columns):
                 coroutines.append(show_gameover(canvas, height_middle, width_middle))
                 return
-
-        rocket_rows, rocket_columns = curses_tools.get_frame_size(frame)
 
         rows_direction, columns_direction, is_space_pressed = curses_tools.read_controls(canvas)
         if is_space_pressed and has_gun():

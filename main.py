@@ -47,17 +47,17 @@ async def sleep(num_of_ticks: int) -> None:
         await asyncio.sleep(0)
 
 
-async def draw_rocket(
+async def run_spaceship(
     canvas: curses.window,
-    start_row: int,
-    start_column: int,
+    max_height: int,
+    max_width: int,
     rocket_frames: list[str],
 ) -> None:
     """Draws animated rocket by the specified coordinates."""
     height, width = canvas.getmaxyx()
 
-    row = start_row
-    column = start_column
+    row = max_height // 2
+    column = max_width // 2
 
     row_speed = 0
     column_speed = 0
@@ -66,7 +66,9 @@ async def draw_rocket(
 
         rocket_rows, rocket_columns = curses_tools.get_frame_size(frame)
 
-        rows_direction, columns_direction, _space_pressed = curses_tools.read_controls(canvas)
+        rows_direction, columns_direction, is_space_pressed = curses_tools.read_controls(canvas)
+        if is_space_pressed:
+            coroutines.append(fire_shot(canvas, row, column + rocket_columns // 2))
 
         row_speed, column_speed = update_speed(row_speed, column_speed, rows_direction, columns_direction)
         row = round(median([1, row + row_speed, height - rocket_rows - 1]))
@@ -124,8 +126,7 @@ def draw(
     for _ in range(num_of_stars):
         coroutines.append(blink_star(canvas, generate_random_star(max_height, max_width)))
 
-    coroutines.append(fire_shot(canvas, max_height // 2, max_width // 2 + 1))
-    coroutines.append(draw_rocket(canvas, max_height // 2, max_width // 2 - 1, rocket_frames))
+    coroutines.append(run_spaceship(canvas, max_height, max_width, rocket_frames))
     coroutines.append(fill_orbit_with_garbage(canvas, max_width, garbage_frames))
 
     while True:

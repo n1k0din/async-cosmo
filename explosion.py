@@ -31,7 +31,7 @@ EXPLOSION_FRAMES = [
 ]
 
 
-async def explode(canvas: curses.window, center_row: int, center_column: int):
+async def explode(canvas: curses.window, center_row: int, center_column: int) -> None:
     """Draw animation of exploding."""
     rows, columns = get_frame_size(EXPLOSION_FRAMES[0])
     corner_row = center_row - rows // 2

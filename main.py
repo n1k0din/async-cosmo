@@ -9,6 +9,7 @@ from statistics import median
 
 import curses_tools
 from fire import fire_shot
+from game_scenario import PHRASES, get_garbage_delay_tics
 from obstacles import show_obstacles
 from physics import update_speed
 from show_gameover import show_gameover
@@ -18,14 +19,33 @@ TIC_TIMEOUT = 0.1
 STAR_SYMBOLS = '+*.:@^'
 MAX_FIRST_LAG = 50
 NUM_OF_STARS = 100
+START_YEAR = 1957
 
 Star = namedtuple('Star', 'row column symbol first_lag')
 coroutines = []
+current_year = START_YEAR
 
 
 def read_frames_from_files(paths: list[str]) -> list[str]:
     """Read text files to list of strings."""
     return [Path(path).read_text() for path in paths]
+
+
+async def start_countdown() -> None:
+    """Starts year global countdown."""
+    global current_year
+    for year in itertools.count(start=START_YEAR):
+        current_year = year
+        await sleep(10)
+
+
+async def fill_year_info_table(canvas: curses.window) -> None:
+    """Fill game info table with current year and phrase."""
+    while True:
+        phrase = f': {PHRASES[current_year]}' if current_year in PHRASES else ''
+        canvas.addstr(0, 0, f'{current_year}{phrase}')
+        await asyncio.sleep(0)
+        canvas.erase()
 
 
 def generate_random_star(
@@ -112,8 +132,12 @@ async def fill_orbit_with_garbage(
 ) -> None:
     """Fills the orbit with garbage."""
     while True:
+        delay = get_garbage_delay_tics(current_year)
+        if not delay:
+            await asyncio.sleep(0)
+            continue
+        await sleep(delay)
         coroutines.append(fly_garbage(canvas, randint(0, max_width), choice(garbage_frames)))
-        await sleep(10)
 
 
 def draw(
@@ -129,7 +153,10 @@ def draw(
     canvas.border()
 
     height, width = canvas.getmaxyx()
-    max_height, max_width = height - 1, width - 1
+    padding = 1
+    max_height, max_width = height - padding, width - padding
+
+    year_info_table = canvas.derwin(max_height - padding, padding)
 
     for _ in range(num_of_stars):
         coroutines.append(blink_star(canvas, generate_random_star(max_height, max_width)))
@@ -137,6 +164,8 @@ def draw(
     coroutines.append(run_spaceship(canvas, max_height, max_width, rocket_frames))
     coroutines.append(fill_orbit_with_garbage(canvas, max_width, garbage_frames))
     coroutines.append(show_obstacles(canvas, obstacles))
+    coroutines.append(start_countdown())
+    coroutines.append(fill_year_info_table(year_info_table))
 
     while True:
         for coroutine in coroutines.copy():

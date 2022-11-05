@@ -15,7 +15,7 @@ GAMEOVER_FRAME = textwrap.dedent(
 )
 
 
-async def show_gameover(canvas: curses.window, center_row: int, center_column: int):
+async def show_gameover(canvas: curses.window, center_row: int, center_column: int) -> None:
     """Draws gameover ASCII text."""
     rows, columns = get_frame_size(GAMEOVER_FRAME)
     corner_row = center_row - rows // 2

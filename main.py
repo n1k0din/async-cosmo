@@ -9,6 +9,7 @@ from statistics import median
 
 import curses_tools
 from fire import fire_shot
+from physics import update_speed
 from space_garbage import fly_garbage
 
 TIC_TIMEOUT = 0.1
@@ -41,7 +42,7 @@ def generate_random_star(
 
 
 async def sleep(num_of_ticks: int) -> None:
-    """sleep(n) for asyncio."""
+    """time.sleep for asyncio."""
     for _ in range(num_of_ticks):
         await asyncio.sleep(0)
 
@@ -51,7 +52,6 @@ async def draw_rocket(
     start_row: int,
     start_column: int,
     rocket_frames: list[str],
-    speed: int = 1,
 ) -> None:
     """Draws animated rocket by the specified coordinates."""
     height, width = canvas.getmaxyx()
@@ -59,19 +59,21 @@ async def draw_rocket(
     row = start_row
     column = start_column
 
+    row_speed = 0
+    column_speed = 0
+
     for frame in itertools.cycle(rocket_frames):
 
         rocket_rows, rocket_columns = curses_tools.get_frame_size(frame)
 
         rows_direction, columns_direction, _space_pressed = curses_tools.read_controls(canvas)
 
-        row = int(median([1, row + speed * rows_direction, height - rocket_rows - 1]))
-        column = int(median([1, column + speed * columns_direction, width - rocket_columns - 1]))
+        row_speed, column_speed = update_speed(row_speed, column_speed, rows_direction, columns_direction)
+        row = round(median([1, row + row_speed, height - rocket_rows - 1]))
+        column = round(median([1, column + column_speed, width - rocket_columns - 1]))
 
         curses_tools.draw_frame(canvas, row, column, frame)
-
         await asyncio.sleep(0)
-
         curses_tools.draw_frame(canvas, row, column, frame, negative=True)
 
 
